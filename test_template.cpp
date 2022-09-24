@@ -1,5 +1,6 @@
-
+#include <vector>
 #include <stdio.h>
+#include <cmath>
 
 #include <sys/time.h>
 #include <unistd.h>
@@ -12,10 +13,9 @@ double getmillisecs() {
     return tv.tv_sec * 1e3 + tv.tv_usec * 1e-3;
 }
 
+/*
+#define N 10000000
 
-#define N 1000000
-
-/* 
 #define M 100
 #define M2 10
 */
@@ -64,32 +64,71 @@ int process_template(TV * tv) {
 
 }
 
+double mean(const double *x, int n) {
+  double sum = 0;
+  for(int i = 0; i < n; i++) {
+    sum += x[i];
+  }
+  return sum / n;     
+}
+
+double stddev(const double *x, int n) {
+  double sum = 0, sum2 = 0;
+  for(int i = 0; i < n; i++) {
+    sum += x[i];
+    sum2 += x[i] * x[i]; 
+  }
+  return sqrt(sum2 / n - sum * sum / (n * n));     
+}
+
 
 int main () {
-   for(int run = 0; run < 5; run++) {
-   printf("Run %d\n", run); 
-   {
-
-      TVI tvi; 
-      double t0 = getmillisecs();
-      int cs = process_virtual(&tvi); 
-      double t1 = getmillisecs(); 
-
-      printf("virtual cs=%d, time=%.3f ms\n", cs, t1 - t0);
+    int nrun = 6;
+    std::vector<double> times(2 * nrun); 
+    for(int run = 0; run < nrun; run++) {
+     printf("Run %d\n", run); 
+     {
+       
+       TVI tvi; 
+       double t0 = getmillisecs();
+       int cs = process_virtual(&tvi); 
+       double t1 = getmillisecs(); 
+       
+       if (run != 0) {
+	 printf("virtual cs=%d, time= %.3f ms\n", cs, t1 - t0);
+       }
+       times[run] = t1 - t0; 
+     }
+     
+     {
+       
+       TVt tvt; 
+       double t0 = getmillisecs();
+       int cs = process_template(&tvt); 
+       double t1 = getmillisecs(); 
+       
+       if (run != 0) {
+	 printf("template cs=%d, time= %.3f ms\n", cs, t1 - t0);
+       }
+       times[run + nrun] = t1 - t0; 
+       
+     } 
    }
+    double mean_virtual = mean(times.data() + 1, nrun - 1);
+    double mean_template = mean(times.data() + 1 + nrun, nrun - 1);
 
-   {
-
-      TVt tvt; 
-      double t0 = getmillisecs();
-      int cs = process_template(&tvt); 
-      double t1 = getmillisecs(); 
-
-      printf("template cs=%d, time=%.3f ms\n", cs, t1 - t0);
-   } 
-   }
+    printf("virtual time: %.3f +/- %.3f\n",
+	   mean_virtual,
+	   stddev(times.data() + 1, nrun - 1)); 
+    printf("template time: %.3f +/- %.3f (%+.2f %%)\n",
+	   mean_template,
+	   stddev(times.data() + 1 + nrun, nrun - 1),
+	   (mean_template - mean_virtual) * 100.0 / mean_virtual
+	   ); 
    return 0; 
 }
+
+
 
 
 
