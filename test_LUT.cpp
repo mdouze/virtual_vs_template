@@ -41,17 +41,16 @@ struct TVt {
   TVt() {
 
     lut.resize(M2 * 256);
-    std::random_device rd;
-    std::mt19937 rng;
-    std::uniform_real_distribution<> dis(0, 1);
+    std::mt19937 rng(123);
     for(int i = 0; i < lut.size(); i++) {
-      lut[i] = dis(rd); 
+      lut[i] = rng() / float(rng.max());
+      // printf("lut[%d]=%g\n", i, lut[i]); 
     }   
     
   };
 
   
-   int f(const uint8_t *codes) {
+   float f(const uint8_t *codes) {
      const float *luti = lut.data();
      float accu = 0; 
      for(int i = 0; i < M2; i++) {
@@ -104,11 +103,9 @@ int main () {
   std::vector<uint8_t> codes(M2 * N);
 
   {
-    std::random_device rd;
-    std::mt19937 rng;
-    std::uniform_int_distribution<int> dis(0, 255);
+    std::mt19937 rng(1234);
     for(int i = 0; i < codes.size(); i++) {
-      codes[i] = dis(rd); 
+      codes[i] = rng() % 0xff; 
     }
   }
 

@@ -9,11 +9,9 @@
 TVI::TVI() {
 
   lut.resize(M2 * 256);
-  std::random_device rd;
-  std::mt19937 rng;
-  std::uniform_real_distribution<> dis(0, 1);
+  std::mt19937 rng(123);
   for(int i = 0; i < lut.size(); i++) {
-    lut[i] = dis(rd); 
+    lut[i] = rng() / float(rng.max()); 
   }   
   
 };
