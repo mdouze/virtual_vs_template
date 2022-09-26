@@ -214,5 +214,9 @@ Results ([gist](https://gist.github.com/mdouze/4c1741d3e04aeada5753fff1c90023c3)
 | 1M   | +2.87 % | +1.77 % | -7.25 % | -0.95 % | +6.69 % | +13.74 % | -0.92 % | +0.06 % | 
 | 10M  | +10.49 % | +0.45 % | -8.17 % | -7.76 % | +0.02 % | +13.42 % | -0.21 % | -0.13 % | 
 
-Here it is obvious that the problem is largely fixed by the link-time optimization.
+- the problem is largely fixed by the link-time optimization.
+
+- in fact virtual functions are often faster than templates... Again hard to interpret
+
+
 
