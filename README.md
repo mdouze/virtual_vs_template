@@ -137,7 +137,7 @@ For the M2, the gap decreases when the number of loop cycles increases.
 
 ## Test setup with look-up tables 
 
-To make a more realistic workload, we use a callback function that computes product quantizer distances.
+To make a more realistic workload, we use a callback function that computes product quantizer distances, see [the Faiss code](https://github.com/facebookresearch/faiss/blob/main/faiss/impl/ProductQuantizer.cpp#L48).
 In that case, the callback accesses `M2` bytes of contiguous memory and does `M2` look-ups at random locations in a memory block that is presumably in cache. 
 
 This writes as 
@@ -171,9 +171,10 @@ float process_template(TV* tv, const uint8_t *codes) {
 ```
 Note that there is no `M` value anymore. 
 
-### Results 
+## Results with LUTs
 
-On the M2 platform. 
+
+### On the M2 platform. 
 Full logs in [this gist](https://gist.github.com/mdouze/061af9b38450d86d3609ea8e1d078812) 
 
 | N    | M2=1  | M2=2  | M2=4  | M2=8  | M2=16  | M2=32  | M2=64  | M2=128  |
@@ -185,19 +186,25 @@ Observations:
 
 - the runtimes do not depend significantly on `N`
 
-- there is a huge difference depending on `M2`, which is not monotonous and not necessarily in favor of the template version... 
+- there is a huge difference depending on `M2`, which is not monotonous.
 
 So this is quite hard to interpret. 
 
-On the Xeon platform ([gist](https://gist.github.com/mdouze/702cca5cfb44dd6e2a1e3795b5d010e3)) 
+### On the Xeon platform 
+
+Full results: [gist](https://gist.github.com/mdouze/702cca5cfb44dd6e2a1e3795b5d010e3)
 
 | N    | M2=1  | M2=2  | M2=4  | M2=8  | M2=16  | M2=32  | M2=64  | M2=128  |
 |------|------|------|-------|-------|-------|------|------|-------|
 | 1M   | -57.09 % | -54.09 % | -58.57 % | -72.86 % | -85.09 % | -7.12 % | +0.14 % | -0.27 % | 
 | 10M  | -59.29 % | -59.39 % | -61.38 % | -72.92 % | -86.11 % | -6.83 % | +1.45 % | -0.48 % | 
 
-For the Xeon, the template version is much faster, when M2 < 32. 
-For M2 >= 32 there is a sudden performance drop, presumably because the LUT does not fit in cache anymore. 
+- the template version is much faster when M2 < 32. 
+
+- For M2 >= 32 there is a sudden performance drop, presumably because the LUT does not fit in cache anymore. However, the virtual / template gap becomes smaller
+
+
+### Xeon with link-time optimization
 
 There is a gcc options, `-flto` that enables link-time optimization. In that case it should be possible to optimize between the two compile units. 
 Results ([gist](https://gist.github.com/mdouze/4c1741d3e04aeada5753fff1c90023c3))
